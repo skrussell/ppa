@@ -108,7 +108,7 @@ define ppa::repo(
       File[$ppa_config_file] {
         ensure => false
       }
-      if ($apt_key) {
+      if ($apt_key != '') {
         ppa::key { $apt_key:
           ensure => absent,
         }
