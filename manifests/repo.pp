@@ -70,7 +70,7 @@ define ppa::repo(
   $apt_key = '',
   $comment = '',
   $dist = $lsbdistcodename,
-  $supported = ['trusty','xenial','zesty','artful'],
+  $supported = ['trusty','xenial','zesty','artful','bionic'],
   $keyserver = 'keyserver.ubuntu.com'
 ) {
   $ppa_file_name = regsubst($name, '/', '-', 'G')
@@ -81,7 +81,11 @@ define ppa::repo(
 
   case $ensure {
     present: {
-      if ($dist) and ($dist in $supported) {
+      $use_dist = $dist ? {
+        'loki'  => 'xenial',
+        default => $dist
+      }
+      if ($use_dist) and ($use_dist in $supported) {
         File[$ppa_config_file] {
           ensure  => file,
           content => template('ppa/ppa.list.erb'),
@@ -95,12 +99,7 @@ define ppa::repo(
             require => Ppa::Key[$apt_key],
           }
         }
-      }
-      else {
-        File[$ppa_config_file] {
-          ensure => false
-        }
-
+      } else {
         fail "Unsupported dist '${dist}' for pparepo ${name}"
       }
     }
