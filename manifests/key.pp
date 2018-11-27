@@ -49,6 +49,18 @@ define ppa::key(
   $ensure = present,
   $keyserver = 'keyserver.ubuntu.com'
 ) {
+  $key_len = length($name)
+  if ($key_len != 8) {
+    fail("Unexpected key length of ${key_len}")
+  }
+
+  if ($facts['os']['name'] == 'Ubuntu' and versioncmp($facts['os']['release']['full'], '18.04') >= 0) {
+    # They seem to have defaulted to using the finger print view/output for list now, so have to insert a space to match it
+    $use_match_key = regsubst($name, /^(\w{4})(\w{4})$/, '\1\ \2')
+  } else {
+    $use_match_key = $name
+  }
+  $match_cmd = "apt-key list | grep ${use_match_key}"
   case $ensure {
     present: {
       exec { "Import ${name} to apt keystore":
@@ -58,7 +70,7 @@ define ppa::key(
                         gpg --export --armor ${name} | apt-key add -",
         user        => 'root',
         group       => 'root',
-        unless      => "apt-key list | grep ${name}",
+        unless      => $match_cmd,
         logoutput   => on_failure,
       }
     }
@@ -69,7 +81,7 @@ define ppa::key(
         command     => "apt-key del ${name}",
         user        => 'root',
         group       => 'root',
-        onlyif      => "apt-key list | grep ${name}",
+        onlyif      => $match_cmd,
       }
     }
     default: {
