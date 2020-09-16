@@ -65,12 +65,12 @@
 # Copyright 2011 Daniel Hahler
 # Copyright 2013 Sebastian Hempel
 #
-define ppa::repo(
+define ppa::repo (
   $ensure = present,
   $apt_key = '',
   $comment = '',
   $dist = $lsbdistcodename,
-  $supported = ['trusty','xenial','bionic','cosmic'],
+  $supported = ['xenial','bionic','focal'],
   $keyserver = 'keyserver.ubuntu.com'
 ) {
   $ppa_file_name = regsubst($name, '/', '-', 'G')
